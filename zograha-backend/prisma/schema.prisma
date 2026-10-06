@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum InboxStatus {
+  NEW
+  READ
+  REPLIED
+  SPAM
+}
+
+enum ApplicationStatus {
+  NEW
+  REVIEWING
+  SHORTLISTED
+  INTERVIEW
+  REJECTED
+  HIRED
+}
+
+model Service {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  title            String
+  shortDescription String
+  description      String
+  icon             String?
+  image            String?
+  features         String[]
+  order            Int      @default(0)
+  published        Boolean  @default(true)
+  seoTitle         String?
+  seoDescription   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model BlogPost {
+  id             String    @id @default(cuid())
+  slug           String    @unique
+  title          String
+  excerpt        String
+  content        String
+  coverImage     String?
+  author         String    @default("Zograha Team")
+  category       String?
+  tags           String[]
+  readingTime    Int       @default(1)
+  published      Boolean   @default(false)
+  publishedAt    DateTime?
+  seoTitle       String?
+  seoDescription String?
+  ogImage        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([published, publishedAt])
+  @@index([category])
+}
+
+model Project {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  client         String?
+  category       String?
+  summary        String
+  description    String?
+  image          String?
+  gallery        String[]
+  techStack      String[]
+  liveUrl        String?
+  featured       Boolean  @default(false)
+  order          Int      @default(0)
+  published      Boolean  @default(true)
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  company   String?
+  content   String
+  rating    Int      @default(5)
+  avatar    String?
+  order     Int      @default(0)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Industry {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  icon        String?
+  order       Int      @default(0)
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Job {
+  id               String           @id @default(cuid())
+  slug             String           @unique
+  title            String
+  department       String?
+  location         String           @default("Tamil Nadu, India")
+  type             String           @default("Full-time")
+  experience       String?
+  summary          String
+  description      String
+  responsibilities String[]
+  requirements     String[]
+  salaryRange      String?
+  order            Int              @default(0)
+  published        Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  applications     JobApplication[]
+}
+
+model ContactMessage {
+  id        String      @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  service   String?
+  message   String
+  status    InboxStatus @default(NEW)
+  ipHash    String?
+  createdAt DateTime    @default(now())
+
+  @@index([status, createdAt])
+  @@index([ipHash, createdAt])
+}
+
+model JobApplication {
+  id             String            @id @default(cuid())
+  jobId          String?
+  job            Job?              @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  jobTitle       String?
+  name           String
+  email          String
+  phone          String
+  experience     String?
+  currentCompany String?
+  linkedinUrl    String?
+  portfolioUrl   String?
+  coverLetter    String?
+  resumeUrl      String?
+  status         ApplicationStatus @default(NEW)
+  ipHash         String?
+  createdAt      DateTime          @default(now())
+
+  @@index([status, createdAt])
+  @@index([ipHash, createdAt])
+}
