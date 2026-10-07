@@ -1,3 +1,13 @@
+## Local setup
+```bash
+npm install
+cp .env.example .env        # fill DATABASE_URL, DIRECT_URL, ADMIN_API_KEY
+npm run db:migrate -- --name init   # creates prisma/migrations (commit this folder!)
+npm run db:seed             # placeholder content
+npm run dev                 # http://localhost:4000
+```
+
+Free PostgreSQL: [Neon](https://neon.tech) or [Supabase](https://supabase.com) (use the pooled URL for `DATABASE_URL`, direct URL for `DIRECT_URL`).
 # Zograha Technologies — Backend API
 
 Next.js (App Router, API-only) + PostgreSQL (Prisma) backend for the Zograha website.
@@ -54,15 +64,17 @@ npm run dev                 # http://localhost:4000
 Free PostgreSQL: [Neon](https://neon.tech) or [Supabase](https://supabase.com) (use the pooled URL for `DATABASE_URL`, direct URL for `DIRECT_URL`).
 
 ## Deploy on Vercel
-1. Push to GitHub (include `prisma/migrations`).
-2. Vercel → New Project → import repo. `vercel-build` runs `prisma migrate deploy` automatically.
-3. Add env vars from `.env.example` (at least `DATABASE_URL`, `DIRECT_URL`, `ADMIN_API_KEY`, `IP_HASH_SALT`, `FRONTEND_ORIGINS`).
-4. Optional: Vercel Blob store → `BLOB_READ_WRITE_TOKEN` (resume uploads); Resend → `RESEND_API_KEY` + `NOTIFY_EMAIL` (email alerts).
-5. Add a domain such as `api.zograha.com`, then test `/api/health`.
-6. Seed production once from your machine: point `.env` at the production DB and run `npm run db:seed`.
+1. Push to GitHub with `prisma/migrations` committed.
+2. Create a separate Vercel project for this directory and set its Root Directory to `zograha-backend`.
+3. Configure `DATABASE_URL`, `DIRECT_URL`, `ADMIN_API_KEY`, `IP_HASH_SALT`, and `FRONTEND_ORIGINS` in Vercel. Never place these in frontend variables.
+4. Use the project `vercel-build` command (`prisma generate && prisma migrate deploy && next build`) so only committed migrations are deployed. Do not run `prisma db push` or reset the production database.
+5. Configure `BLOB_READ_WRITE_TOKEN` for resume uploads and `RESEND_API_KEY`, `NOTIFY_EMAIL`, and a verified `MAIL_FROM` for notifications when those services are approved.
+6. After the backend domain is configured, set the frontend's `NEXT_PUBLIC_API_URL` and add the exact frontend origin to `FRONTEND_ORIGINS`; then verify `/api/health` and CORS.
+
+Do not run the placeholder seed against an existing production database. Seed only a new, confirmed empty database after reviewing the seed content.
 
 ## Connecting the frontend
-Copy `client/zograha-api.ts` into the frontend and set `VITE_API_URL` / `NEXT_PUBLIC_API_URL`. Add the frontend domain to `FRONTEND_ORIGINS`.
+The frontend in the sibling `zograha-frontend` directory already has the API client. Set `NEXT_PUBLIC_API_URL` there and add its origin to `FRONTEND_ORIGINS`.
 
 ```ts
 const { items } = await api.blog.list({ page: 1, limit: 6 });
